@@ -4,6 +4,8 @@ C:\2\w\xamarin\App1\App1\App1.Android\obj\Debug\android\assets\Java.Interop.dll
 C:\2\w\xamarin\App1\App1\App1.Android\obj\Debug\android\assets\Mono.Android.dll
 C:\2\w\xamarin\App1\App1\App1.Android\obj\Debug\android\assets\mscorlib.dll
 C:\2\w\xamarin\App1\App1\App1.Android\obj\Debug\android\assets\Newtonsoft.Json.dll
+C:\2\w\xamarin\App1\App1\App1.Android\obj\Debug\android\assets\Plugin.Settings.Abstractions.dll
+C:\2\w\xamarin\App1\App1\App1.Android\obj\Debug\android\assets\Plugin.Settings.dll
 C:\2\w\xamarin\App1\App1\App1.Android\obj\Debug\android\assets\SQLite-net.dll
 C:\2\w\xamarin\App1\App1\App1.Android\obj\Debug\android\assets\SQLitePCLRaw.batteries_green.dll
 C:\2\w\xamarin\App1\App1\App1.Android\obj\Debug\android\assets\SQLitePCLRaw.batteries_v2.dll

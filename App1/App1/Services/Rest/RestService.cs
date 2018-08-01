@@ -25,7 +25,7 @@ namespace App1.Services
 
             //...
 
-            //Refresh data Pessoa (timer)
+            //Cria um timer que executa a function sempre a cada X periodos
             RestHolder<Pessoa>.StartTimer<Pessoa>();
             
             //...
