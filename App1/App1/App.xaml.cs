@@ -14,16 +14,14 @@ namespace App1
 		public App ()
 		{
 			InitializeComponent();
-
-
 			MainPage = new MainPage();
 		}
 
 		protected override void OnStart ()
 		{
             // Handle when your app starts
-            SQLiteRepository.init();
-            RestService.init();
+            SQLiteRepository.Init();
+            RestService.Init();
 		}
 
 		protected override void OnSleep ()

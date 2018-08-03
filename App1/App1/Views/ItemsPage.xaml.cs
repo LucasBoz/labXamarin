@@ -14,23 +14,27 @@ using System.Net.Http;
 using System.Collections.ObjectModel;
 using Newtonsoft.Json;
 using App1.Database;
+using App1.Services;
 
 namespace App1.Views
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
-	public partial class ItemsPage : ContentPage
-	{
-        private const string Url = "http://192.168.20.16:8080/pessoa/listAll"; //This url is a free public api intended for demos
-        private readonly HttpClient _client = new HttpClient(); //Creating a new instance of HttpClient. (Microsoft.Net.Http)
-        private ObservableCollection<Pessoa> _pessoas; //Refreshing the state of the UI in realtime when updating the ListView's Collection
+    [XamlCompilation(XamlCompilationOptions.Compile)]
+    public partial class ItemsPage : ContentPage
+    {
+        private ObservableCollection<Pessoa> _pessoas;
+        private Subscription<Pessoa> listPessoaSubscription;
 
         ItemsViewModel viewModel;
 
         public ItemsPage()
         {
             InitializeComponent();
-
             BindingContext = viewModel = new ItemsViewModel();
+
+            listPessoaSubscription = new Subscription<Pessoa>( async () => {
+                Console.WriteLine( "WOLOLOOOOOOOOOO" );
+                ItemsListView.ItemsSource = await SQLiteRepository.Query<Pessoa>("SELECT * FROM " + typeof(Pessoa).Name);
+            });
         }
 
         async void OnItemSelected(object sender, SelectedItemChangedEventArgs args)
@@ -47,7 +51,17 @@ namespace App1.Views
 
         async void AddItem_Clicked(object sender, EventArgs e)
         {
-            await Navigation.PushModalAsync(new NavigationPage(new NewItemPage()));
+            Pessoa pessoa = new Pessoa();
+            pessoa.Id = null;
+            pessoa.Nome = "cabulosa null" + _pessoas.Count;
+            pessoa.Created = DateTime.Now;
+            RestService.SendEntity<Pessoa>(pessoa);
+
+            Pessoa pessoa2 = new Pessoa();
+            pessoa2.Id = 66666;
+            pessoa2.Nome = "cabulosa updated" + _pessoas.Count;
+            pessoa2.Created = DateTime.Now;
+            RestService.SendEntity<Pessoa>(pessoa2);
         }
 
         protected override async void OnAppearing()
@@ -55,7 +69,7 @@ namespace App1.Views
             if (viewModel.Items.Count == 0)
                 viewModel.LoadItemsCommand.Execute(null);
 
-            ItemsListView.ItemsSource = await SQLiteRepository.query<Pessoa>( "SELECT * FROM " + typeof( Pessoa ).Name );
+            ItemsListView.ItemsSource = await SQLiteRepository.Query<Pessoa>( "SELECT * FROM " + typeof( Pessoa ).Name );
             base.OnAppearing();
         }
 
@@ -66,10 +80,8 @@ namespace App1.Views
         /// <param name="e"></param>
         private async void OnAdd(object sender, EventArgs e)
         {
-            Pessoa pessoa = new Pessoa { Id = 12211212 , Nome = "Teste" }; //Creating a new instane of Post with a Title Property and its value in a Timestamp format
-            string content = JsonConvert.SerializeObject(pessoa); //Serializes or convert the created Post into a JSON String
-            await _client.PostAsync(Url, new StringContent(content, Encoding.UTF8, "application/json")); //Send a POST request to the specified Uri as an asynchronous operation and with correct character encoding (utf9) and contenct type (application/json).
-            _pessoas.Insert(0, pessoa); //Updating the UI by inserting an element into the first index of the collection 
+            //Pessoa pessoa = new Pessoa { Id = 66666 , Nome = "cabulosa" }; //Creating a new instane of Post with a Title Property and its value in a Timestamp format
+            //RestService.send<Pessoa>(pessoa);
         }
 
         /// <summary>
@@ -79,10 +91,7 @@ namespace App1.Views
         /// <param name="e"></param>
         private async void OnUpdate(object sender, EventArgs e)
         {
-            Pessoa pessoa = _pessoas[0]; //Assigning the first Post object of the Post Collection to a new instance of Post
-            pessoa.Nome += " [updated]"; //Appending an [updated] string to the current value of the Title property
-            string content = JsonConvert.SerializeObject(pessoa); //Serializes or convert the created Post into a JSON String
-            await _client.PutAsync(Url + "/" + pessoa.Id, new StringContent(content, Encoding.UTF8, "application/json")); //Send a PUT request to the specified Uri as an asynchronous operation.
+            
         }
 
         /// <summary>
@@ -92,9 +101,7 @@ namespace App1.Views
         /// <param name="e"></param>
         private async void OnDelete(object sender, EventArgs e)
         {
-            Pessoa pessoa = _pessoas[0]; //Assigning the first Post object of the Post Collection to a new instance of Post
-            await _client.DeleteAsync(Url + "/" + pessoa.Id); //Send a DELETE request to the specified Uri as an asynchronous 
-            _pessoas.Remove(pessoa); //Removes the first occurrence of a specific object from the Post collection. This will be visible on the UI instantly
+           
         }
     }
 }

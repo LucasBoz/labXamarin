@@ -11,18 +11,15 @@ namespace App1.Services.Rest
 {
     class RestHolder<T>
     {
-        private static readonly TimeSpan refreshTimeSpan = new TimeSpan(0, 0, 3);
+        private static readonly TimeSpan refreshTimeSpan = new TimeSpan( 0, 0, 5 );
 
         //self instance singleton para RestEntityHolder, que auxilia a mexer com as Uri's REST
         public static RestHolder<T> instance = null;
-        private static long? lastRequestDateTime = null;
 
         private string _syncUri;
         private string _insertUri;
         private string _updateUri;
         private string _deleteUri;
-
-        private bool threadLock = false;
 
         public RestHolder()
         {
@@ -53,45 +50,36 @@ namespace App1.Services.Rest
             set => _syncUri = value;
         }
 
-        public bool Locked
+        public static void StartAutoSync<T>() where T : new()
         {
-            get => threadLock;
-            set => threadLock = value;
-        }
+            RunTask<T>();
 
-        public static void StartTimer<T>() where T : new()
-        {
-            runTask<T>();
-
-            Device.StartTimer(refreshTimeSpan, () => {
-                if (!RestHolder<T>.instance.Locked)
-                {
-                    //lock thread
-                    RestHolder<T>.instance.Locked = true;
-                    //run thread
-                    runTask<T>();
-                }
-
+            Device.StartTimer( refreshTimeSpan, () => {
+                RunTask<T>();
                 return true; //restart timer
             });
         }
 
-        private static async void runTask<T>() where T : new()
+        private static async void RunTask<T>() where T : new()
         {
-            //Pega o DateTime da ultima requisição desta Uri
-            DateTime lastRequest = Prefs.getDateTime(RestHolder<T>.instance.SyncUri);
+            try
+            {
+                //Pega o DateTime da ultima requisição desta Uri
+                DateTime lastRequest = Prefs.getDateTime(RestHolder<T>.instance.SyncUri);
 
-            //Request e Sync
-            long unixTimestamp = lastRequest.Ticks - new DateTime(1970, 1, 1).Ticks;
-            string content2 = await RestService.getAsync(RestHolder<T>.instance.SyncUri + ( unixTimestamp / TimeSpan.TicksPerMillisecond ) );
-            List<T> list2 = JsonConvert.DeserializeObject<List<T>>(content2);
-            SQLiteRepository.sync<T>(list2);
+                //Request e Sync
+                long unixTimestamp = lastRequest.Ticks - new DateTime(1970, 1, 1).Ticks;
+                string content2 = await RestService.GetAsync(RestHolder<T>.instance.SyncUri + ( unixTimestamp / TimeSpan.TicksPerMillisecond ) );
+                List<T> list2 = JsonConvert.DeserializeObject<List<T>>(content2);
+                SQLiteRepository.Sync<T>(list2);
 
-            //Seta o DateTime da ultima requisição para AGORA
-            Prefs.setDateTime(RestHolder<T>.instance.SyncUri, DateTime.Now);
-
-            //unlock thread
-            RestHolder<T>.instance.Locked = false;
+                //Seta o DateTime da ultima requisição para AGORA
+                Prefs.setDateTime(RestHolder<T>.instance.SyncUri, DateTime.Now);
+            }
+            catch( Exception e )
+            {
+                Console.WriteLine( e.Message );
+            }
         }
     }
 }
